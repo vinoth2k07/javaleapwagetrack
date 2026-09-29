@@ -1,87 +1,64 @@
 // ============================================================
-// WAGETRACK
-// Daily Wage Worker Attendance & Payment Tracker
+// WageTrack - Frontend JavaScript
 // ============================================================
+
+// =========================
+// API URLs
+// =========================
 
 const WORKER_API = "/api/workers";
 const WORKSITE_API = "/api/worksites";
 const ATTENDANCE_API = "/api/attendance";
 const PAYMENT_API = "/api/payments";
 
+
+// =========================
+// Global Data
+// =========================
+
 let workers = [];
 let worksites = [];
 let attendanceRecords = [];
-let paymentRecords = [];
+let payments = [];
+
+const OT_RATE = 100;
 
 
 // ============================================================
-// START APPLICATION
+// PAGE NAVIGATION
 // ============================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+const pageTitles = {
+    dashboard: {
+        title: "Dashboard",
+        subtitle: "Workforce overview and daily operations"
+    },
 
-    setupNavigation();
-    setupMenu();
-    setupButtons();
-    setupForms();
-    setupModalClosing();
-    setupSearch();
-    setupAttendanceStatus();
+    workers: {
+        title: "Workers",
+        subtitle: "Register and manage daily wage workers"
+    },
 
-    setCurrentDate();
+    worksites: {
+        title: "Worksites",
+        subtitle: "Manage construction and work locations"
+    },
 
-    loadApplicationData();
-});
+    attendance: {
+        title: "Attendance",
+        subtitle: "Track daily worker attendance and overtime"
+    },
 
+    payments: {
+        title: "Payments",
+        subtitle: "Monitor daily wage and overtime payments"
+    },
 
-// ============================================================
-// LOAD ALL DATA
-// ============================================================
-
-async function loadApplicationData() {
-
-    await loadWorkers();
-    await loadWorksites();
-    await loadAttendance();
-    await loadPayments();
-
-    updateDashboard();
-}
-
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-
-function setupNavigation() {
-
-    document.querySelectorAll(".nav-item").forEach(item => {
-
-        item.addEventListener("click", () => {
-
-            const page = item.dataset.page;
-
-            if (!page) return;
-
-            showPage(page);
-        });
-    });
-
-
-    document.querySelectorAll("[data-page]").forEach(button => {
-
-        if (button.classList.contains("nav-item")) return;
-
-        button.addEventListener("click", () => {
-
-            const page = button.dataset.page;
-
-            if (!page) return;
-
-            showPage(page);
-        });
-    });
-}
+    reports: {
+        title: "Reports",
+        subtitle: "Review workforce attendance and payment information"
+    }
+};
 
 
 function showPage(pageName) {
@@ -90,193 +67,69 @@ function showPage(pageName) {
         page.classList.remove("active");
     });
 
-    const page = document.getElementById(pageName);
+    const selectedPage =
+        document.getElementById(pageName);
 
-    if (page) {
-        page.classList.add("active");
+    if (selectedPage) {
+        selectedPage.classList.add("active");
     }
-
 
     document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.remove("active");
 
-        item.classList.toggle(
-            "active",
-            item.dataset.page === pageName
-        );
+        if (item.dataset.page === pageName) {
+            item.classList.add("active");
+        }
     });
 
-
-    const titles = {
-
-        dashboard: [
-            "Dashboard",
-            "Workforce overview and daily operations"
-        ],
-
-        workers: [
-            "Workers",
-            "Manage registered daily wage workers"
-        ],
-
-        worksites: [
-            "Worksites",
-            "Manage your active work locations"
-        ],
-
-        attendance: [
-            "Attendance",
-            "Track daily worker attendance"
-        ],
-
-        payments: [
-            "Payments",
-            "Monitor worker payment records"
-        ],
-
-        reports: [
-            "Reports",
-            "Review workforce and payment information"
-        ]
-    };
-
-
-    if (titles[pageName]) {
+    if (pageTitles[pageName]) {
 
         document.getElementById("pageTitle").textContent =
-            titles[pageName][0];
+            pageTitles[pageName].title;
 
         document.getElementById("pageSubtitle").textContent =
-            titles[pageName][1];
+            pageTitles[pageName].subtitle;
     }
 
-
-    // Close mobile sidebar
-    const sidebar = document.getElementById("sidebar");
-
-    if (sidebar) {
-        sidebar.classList.remove("open");
-    }
+    // Close sidebar on mobile
+    document
+        .getElementById("sidebar")
+        ?.classList.remove("mobile-open");
 }
 
 
 // ============================================================
-// MENU
+// LOAD ALL DATA
 // ============================================================
 
-function setupMenu() {
+async function loadAllData() {
 
-    const menuButton =
-        document.getElementById("menuButton");
+    try {
 
-    const sidebar =
-        document.getElementById("sidebar");
+        await Promise.all([
+            loadWorkers(),
+            loadWorksites(),
+            loadAttendance(),
+            loadPayments()
+        ]);
 
-    if (!menuButton || !sidebar) return;
+        updateDashboard();
 
-    menuButton.addEventListener("click", () => {
+    } catch (error) {
 
-        sidebar.classList.toggle("open");
+        console.error("Error loading application data:", error);
 
-    });
-}
-
-
-// ============================================================
-// BUTTONS
-// ============================================================
-
-function setupButtons() {
-
-    // Add Worker
-    const addWorkerBtn =
-        document.getElementById("addWorkerBtn");
-
-    const dashboardAddWorkerBtn =
-        document.getElementById(
-            "dashboardAddWorkerBtn"
-        );
-
-    if (addWorkerBtn) {
-        addWorkerBtn.addEventListener(
-            "click",
-            openAddWorkerModal
-        );
-    }
-
-    if (dashboardAddWorkerBtn) {
-        dashboardAddWorkerBtn.addEventListener(
-            "click",
-            openAddWorkerModal
-        );
-    }
-
-
-    // Add Worksite
-    const addWorksiteBtn =
-        document.getElementById("addWorksiteBtn");
-
-    if (addWorksiteBtn) {
-        addWorksiteBtn.addEventListener(
-            "click",
-            openAddWorksiteModal
-        );
-    }
-
-
-    // Add Attendance
-    const addAttendanceBtn =
-        document.getElementById(
-            "addAttendanceBtn"
-        );
-
-    if (addAttendanceBtn) {
-        addAttendanceBtn.addEventListener(
-            "click",
-            openAttendanceModal
-        );
-    }
-
-
-    // Dashboard quick actions
-    document.querySelectorAll(".quick-action").forEach(button => {
-
-        button.addEventListener("click", () => {
-
-            const action = button.dataset.action;
-
-            if (action === "worker") {
-                openAddWorkerModal();
-            }
-
-            if (action === "worksite") {
-                openAddWorksiteModal();
-            }
-
-            if (action === "attendance") {
-                openAttendanceModal();
-            }
-        });
-    });
-
-
-    // Empty worksite button
-    const emptyWorksiteBtn =
-        document.getElementById(
-            "emptyAddWorksiteBtn"
-        );
-
-    if (emptyWorksiteBtn) {
-
-        emptyWorksiteBtn.addEventListener(
-            "click",
-            openAddWorksiteModal
+        showToast(
+            "Connection Error",
+            "Unable to load data from the server.",
+            "error"
         );
     }
 }
 
 
 // ============================================================
-// WORKER
+// WORKERS
 // ============================================================
 
 async function loadWorkers() {
@@ -287,17 +140,18 @@ async function loadWorkers() {
             await fetch(WORKER_API);
 
         if (!response.ok) {
-            throw new Error("Failed to load workers");
+            throw new Error("Unable to load workers.");
         }
 
         workers = await response.json();
 
         renderWorkers();
-        updateWorkerDropdown();
+        populateAttendanceWorkers();
+        updateDashboard();
 
     } catch (error) {
 
-        console.error("Worker loading error:", error);
+        console.error(error);
 
         workers = [];
 
@@ -306,50 +160,50 @@ async function loadWorkers() {
 }
 
 
-function renderWorkers(searchText = "") {
+// ------------------------------------------------------------
+// Render Workers
+// ------------------------------------------------------------
+
+function renderWorkers() {
 
     const container =
         document.getElementById("workerList");
 
+    const searchInput =
+        document.getElementById("workerSearch");
+
     if (!container) return;
 
-
-    const search =
-        searchText.trim().toLowerCase();
-
+    const searchText =
+        searchInput
+            ? searchInput.value.trim().toLowerCase()
+            : "";
 
     const filteredWorkers =
         workers.filter(worker => {
 
-            return (
-                worker.name
-                    .toLowerCase()
-                    .includes(search)
-                ||
-                worker.phone
-                    .toLowerCase()
-                    .includes(search)
-            );
+            const name =
+                worker.name?.toLowerCase() || "";
 
+            const phone =
+                worker.phone?.toLowerCase() || "";
+
+            return (
+                name.includes(searchText) ||
+                phone.includes(searchText)
+            );
         });
 
-
-    const count =
-        document.getElementById("workerCount");
-
-    if (count) {
-        count.textContent =
-            filteredWorkers.length;
-    }
+    document.getElementById("workerCount").textContent =
+        filteredWorkers.length;
 
 
     if (filteredWorkers.length === 0) {
 
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">👷</div>
                 <h3>No workers found</h3>
-                <p>Add a worker to start managing your workforce.</p>
+                <p>Add a worker to get started.</p>
             </div>
         `;
 
@@ -369,15 +223,15 @@ function renderWorkers(searchText = "") {
                             ${getInitials(worker.name)}
                         </div>
 
-                        <div class="worker-info">
+                        <div class="worker-card-info">
 
                             <h3>
-                                ${escapeHTML(worker.name)}
+                                ${escapeHtml(worker.name)}
                             </h3>
 
-                            <p>
-                                ${escapeHTML(worker.phone)}
-                            </p>
+                            <span>
+                                Worker ID: #${worker.id}
+                            </span>
 
                         </div>
 
@@ -386,43 +240,38 @@ function renderWorkers(searchText = "") {
 
                     <div class="worker-details">
 
-                        <div class="detail-item">
-
-                            <span>Daily Wage</span>
-
+                        <div>
+                            <span>PHONE</span>
                             <strong>
-                                ₹${formatMoney(worker.dailyWage)}
+                                ${escapeHtml(worker.phone)}
                             </strong>
-
                         </div>
 
-
-                        <div class="detail-item">
-
-                            <span>Worker ID</span>
-
+                        <div>
+                            <span>DAILY WAGE</span>
                             <strong>
-                                #${worker.id}
+                                ${formatCurrency(worker.dailyWage)}
                             </strong>
-
                         </div>
 
                     </div>
 
 
-                    <div class="worker-actions">
+                    <div class="worker-card-actions">
 
                         <button
-                            type="button"
                             class="secondary-button"
-                            data-edit-worker="${worker.id}">
+                            type="button"
+                            onclick="editWorker(${worker.id})"
+                        >
                             Edit
                         </button>
 
                         <button
-                            type="button"
                             class="danger-button"
-                            data-delete-worker="${worker.id}">
+                            type="button"
+                            onclick="deleteWorker(${worker.id})"
+                        >
                             Delete
                         </button>
 
@@ -435,43 +284,54 @@ function renderWorkers(searchText = "") {
 }
 
 
-// ============================================================
-// WORKER MODAL
-// ============================================================
+// ------------------------------------------------------------
+// Open Add Worker Modal
+// ------------------------------------------------------------
 
-function openAddWorkerModal() {
+function openWorkerModal() {
 
-    const form =
-        document.getElementById("workerForm");
+    document.getElementById("workerModal").classList.add("show");
 
-    const modal =
-        document.getElementById("workerModal");
+    document.getElementById("workerModalTitle").textContent =
+        "Add Worker";
 
-    if (!form || !modal) return;
-
-
-    form.reset();
+    document.getElementById("workerForm").reset();
 
     document.getElementById("workerId").value = "";
 
-    document.getElementById(
-        "workerModalTitle"
-    ).textContent = "Add Worker";
+    document.getElementById("workerPhone").value = "";
 
-
-    modal.classList.add("show");
+    document.getElementById("workerWage").value = "";
 }
 
 
-function openEditWorkerModal(id) {
+// ------------------------------------------------------------
+// Close Worker Modal
+// ------------------------------------------------------------
+
+function closeWorkerModal() {
+
+    document
+        .getElementById("workerModal")
+        .classList.remove("show");
+}
+
+
+// ------------------------------------------------------------
+// Edit Worker
+// ------------------------------------------------------------
+
+function editWorker(id) {
 
     const worker =
-        workers.find(
-            item => item.id === Number(id)
-        );
+        workers.find(item => item.id === id);
 
     if (!worker) return;
 
+    document.getElementById("workerModal").classList.add("show");
+
+    document.getElementById("workerModalTitle").textContent =
+        "Edit Worker";
 
     document.getElementById("workerId").value =
         worker.id;
@@ -484,20 +344,14 @@ function openEditWorkerModal(id) {
 
     document.getElementById("workerWage").value =
         worker.dailyWage;
-
-
-    document.getElementById(
-        "workerModalTitle"
-    ).textContent = "Edit Worker";
-
-
-    document.getElementById(
-        "workerModal"
-    ).classList.add("show");
 }
 
 
-aasync function saveWorker(event) {
+// ------------------------------------------------------------
+// Save Worker
+// ------------------------------------------------------------
+
+async function saveWorker(event) {
 
     event.preventDefault();
 
@@ -516,10 +370,6 @@ aasync function saveWorker(event) {
         );
 
 
-    // ========================================================
-    // VALIDATE WORKER DETAILS
-    // ========================================================
-
     if (!name || !phone || dailyWage <= 0) {
 
         showToast(
@@ -532,11 +382,7 @@ aasync function saveWorker(event) {
     }
 
 
-    // ========================================================
-    // PHONE NUMBER VALIDATION
-    // Must contain exactly 10 digits
-    // ========================================================
-
+    // Phone validation
     if (!/^[0-9]{10}$/.test(phone)) {
 
         showToast(
@@ -556,15 +402,12 @@ aasync function saveWorker(event) {
     };
 
 
-    // ========================================================
-    // SAVE WORKER
-    // ========================================================
-
     try {
 
         let response;
 
 
+        // UPDATE
         if (id) {
 
             response =
@@ -572,32 +415,35 @@ aasync function saveWorker(event) {
                     `${WORKER_API}/${id}`,
                     {
                         method: "PUT",
+
                         headers: {
                             "Content-Type": "application/json"
                         },
+
                         body: JSON.stringify(data)
                     }
                 );
 
-        } else {
+        }
+
+        // CREATE
+        else {
 
             response =
                 await fetch(
                     WORKER_API,
                     {
                         method: "POST",
+
                         headers: {
                             "Content-Type": "application/json"
                         },
+
                         body: JSON.stringify(data)
                     }
                 );
         }
 
-
-        // ====================================================
-        // SERVER ERROR
-        // ====================================================
 
         if (!response.ok) {
 
@@ -639,10 +485,6 @@ aasync function saveWorker(event) {
         }
 
 
-        // ====================================================
-        // SUCCESS
-        // ====================================================
-
         closeWorkerModal();
 
         await loadWorkers();
@@ -675,23 +517,26 @@ aasync function saveWorker(event) {
         );
     }
 }
+
+
+// ------------------------------------------------------------
+// Delete Worker
+// ------------------------------------------------------------
+
 async function deleteWorker(id) {
 
     const worker =
-        workers.find(
-            item => item.id === Number(id)
-        );
+        workers.find(item => item.id === id);
 
     if (!worker) return;
 
 
-    if (
-        !confirm(
+    const confirmed =
+        confirm(
             `Are you sure you want to delete ${worker.name}?`
-        )
-    ) {
-        return;
-    }
+        );
+
+    if (!confirmed) return;
 
 
     try {
@@ -706,20 +551,28 @@ async function deleteWorker(id) {
 
 
         if (!response.ok) {
-            throw new Error("Delete failed");
+
+            throw new Error(
+                "Unable to delete worker."
+            );
         }
 
 
         await loadWorkers();
+
+        await loadAttendance();
+
+        await loadPayments();
 
         updateDashboard();
 
 
         showToast(
             "Worker Deleted",
-            "Worker removed successfully.",
+            "Worker deleted successfully.",
             "success"
         );
+
 
     } catch (error) {
 
@@ -727,7 +580,7 @@ async function deleteWorker(id) {
 
         showToast(
             "Delete Failed",
-            "Unable to delete worker.",
+            error.message,
             "error"
         );
     }
@@ -746,21 +599,21 @@ async function loadWorksites() {
             await fetch(WORKSITE_API);
 
         if (!response.ok) {
-            throw new Error("Failed to load worksites");
+            throw new Error("Unable to load worksites.");
         }
 
         worksites =
             await response.json();
 
         renderWorksites();
-        updateWorksiteDropdown();
+
+        populateAttendanceWorksites();
+
+        updateDashboard();
 
     } catch (error) {
 
-        console.error(
-            "Worksite loading error:",
-            error
-        );
+        console.error(error);
 
         worksites = [];
 
@@ -769,12 +622,14 @@ async function loadWorksites() {
 }
 
 
+// ------------------------------------------------------------
+// Render Worksites
+// ------------------------------------------------------------
+
 function renderWorksites() {
 
     const container =
-        document.getElementById(
-            "worksiteList"
-        );
+        document.getElementById("worksiteList");
 
     if (!container) return;
 
@@ -783,31 +638,10 @@ function renderWorksites() {
 
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">🏗️</div>
-                <h3>No worksites yet</h3>
-                <p>Add your first worksite to begin tracking attendance.</p>
-
-                <button
-                    type="button"
-                    id="emptyAddWorksiteBtn"
-                    class="primary-button">
-                    + Add Worksite
-                </button>
+                <h3>No worksites found</h3>
+                <p>Add a worksite to get started.</p>
             </div>
         `;
-
-
-        const button =
-            document.getElementById(
-                "emptyAddWorksiteBtn"
-            );
-
-        if (button) {
-            button.addEventListener(
-                "click",
-                openAddWorksiteModal
-            );
-        }
 
         return;
     }
@@ -823,20 +657,19 @@ function renderWorksites() {
                         ⌂
                     </div>
 
-                    <div class="worksite-info">
+                    <div class="worksite-content">
 
-                        <h3>
-                            ${escapeHTML(worksite.name)}
-                        </h3>
+                        <span class="panel-kicker">
+                            WORKSITE #${worksite.id}
+                        </span>
+
+                        <h2>
+                            ${escapeHtml(worksite.name)}
+                        </h2>
 
                         <p>
-                            📍
-                            ${escapeHTML(worksite.location)}
+                            ${escapeHtml(worksite.location)}
                         </p>
-
-                        <span>
-                            Worksite #${worksite.id}
-                        </span>
 
                     </div>
 
@@ -844,16 +677,18 @@ function renderWorksites() {
                     <div class="worksite-actions">
 
                         <button
-                            type="button"
                             class="secondary-button"
-                            data-edit-worksite="${worksite.id}">
+                            type="button"
+                            onclick="editWorksite(${worksite.id})"
+                        >
                             Edit
                         </button>
 
                         <button
-                            type="button"
                             class="danger-button"
-                            data-delete-worksite="${worksite.id}">
+                            type="button"
+                            onclick="deleteWorksite(${worksite.id})"
+                        >
                             Delete
                         </button>
 
@@ -866,76 +701,72 @@ function renderWorksites() {
 }
 
 
-// ============================================================
-// WORKSITE MODAL
-// ============================================================
+// ------------------------------------------------------------
+// Open Worksite Modal
+// ------------------------------------------------------------
 
-function openAddWorksiteModal() {
+function openWorksiteModal() {
 
-    const form =
-        document.getElementById(
-            "worksiteForm"
-        );
+    document
+        .getElementById("worksiteModal")
+        .classList.add("show");
 
-    const modal =
-        document.getElementById(
-            "worksiteModal"
-        );
+    document.getElementById("worksiteForm").reset();
 
-    if (!form || !modal) return;
+    document.getElementById("worksiteId").value = "";
 
-
-    form.reset();
-
-    document.getElementById(
-        "worksiteId"
-    ).value = "";
-
-
-    document.getElementById(
-        "worksiteModalTitle"
-    ).textContent = "Add Worksite";
-
-
-    modal.classList.add("show");
+    document.getElementById("worksiteModalTitle").textContent =
+        "Add Worksite";
 }
 
 
-function openEditWorksiteModal(id) {
+// ------------------------------------------------------------
+// Close Worksite Modal
+// ------------------------------------------------------------
+
+function closeWorksiteModal() {
+
+    document
+        .getElementById("worksiteModal")
+        .classList.remove("show");
+}
+
+
+// ------------------------------------------------------------
+// Edit Worksite
+// ------------------------------------------------------------
+
+function editWorksite(id) {
 
     const worksite =
-        worksites.find(
-            item => item.id === Number(id)
-        );
+        worksites.find(item => item.id === id);
 
     if (!worksite) return;
 
 
-    document.getElementById(
-        "worksiteId"
-    ).value = worksite.id;
+    document
+        .getElementById("worksiteModal")
+        .classList.add("show");
 
 
-    document.getElementById(
-        "worksiteName"
-    ).value = worksite.name;
+    document.getElementById("worksiteModalTitle").textContent =
+        "Edit Worksite";
 
 
-    document.getElementById(
-        "worksiteLocation"
-    ).value = worksite.location;
+    document.getElementById("worksiteId").value =
+        worksite.id;
 
+    document.getElementById("worksiteName").value =
+        worksite.name;
 
-    document.getElementById(
-        "worksiteModalTitle"
-    ).textContent = "Edit Worksite";
-
-
-    document.getElementById(
-        "worksiteModal"
-    ).classList.add("show");
+    document.getElementById("worksiteLocation").value =
+        worksite.location;
 }
 
+
+// ------------------------------------------------------------
+// Save Worksite
+// ------------------------------------------------------------
 
 async function saveWorksite(event) {
 
@@ -943,21 +774,13 @@ async function saveWorksite(event) {
 
 
     const id =
-        document.getElementById(
-            "worksiteId"
-        ).value;
-
+        document.getElementById("worksiteId").value;
 
     const name =
-        document.getElementById(
-            "worksiteName"
-        ).value.trim();
-
+        document.getElementById("worksiteName").value.trim();
 
     const location =
-        document.getElementById(
-            "worksiteLocation"
-        ).value.trim();
+        document.getElementById("worksiteLocation").value.trim();
 
 
     if (!name || !location) {
@@ -990,12 +813,12 @@ async function saveWorksite(event) {
                     `${WORKSITE_API}/${id}`,
                     {
                         method: "PUT",
+
                         headers: {
-                            "Content-Type":
-                                "application/json"
+                            "Content-Type": "application/json"
                         },
-                        body:
-                            JSON.stringify(data)
+
+                        body: JSON.stringify(data)
                     }
                 );
 
@@ -1006,20 +829,21 @@ async function saveWorksite(event) {
                     WORKSITE_API,
                     {
                         method: "POST",
+
                         headers: {
-                            "Content-Type":
-                                "application/json"
+                            "Content-Type": "application/json"
                         },
-                        body:
-                            JSON.stringify(data)
+
+                        body: JSON.stringify(data)
                     }
                 );
         }
 
 
         if (!response.ok) {
+
             throw new Error(
-                "Worksite save failed"
+                "Unable to save worksite."
             );
         }
 
@@ -1043,36 +867,38 @@ async function saveWorksite(event) {
             "success"
         );
 
+
     } catch (error) {
 
         console.error(error);
 
         showToast(
             "Save Failed",
-            "Unable to save worksite.",
+            error.message,
             "error"
         );
     }
 }
 
 
+// ------------------------------------------------------------
+// Delete Worksite
+// ------------------------------------------------------------
+
 async function deleteWorksite(id) {
 
     const worksite =
-        worksites.find(
-            item => item.id === Number(id)
-        );
+        worksites.find(item => item.id === id);
 
     if (!worksite) return;
 
 
-    if (
-        !confirm(
+    const confirmed =
+        confirm(
             `Are you sure you want to delete ${worksite.name}?`
-        )
-    ) {
-        return;
-    }
+        );
+
+    if (!confirmed) return;
 
 
     try {
@@ -1087,22 +913,26 @@ async function deleteWorksite(id) {
 
 
         if (!response.ok) {
+
             throw new Error(
-                "Worksite delete failed"
+                "Unable to delete worksite."
             );
         }
 
 
         await loadWorksites();
 
+        await loadAttendance();
+
         updateDashboard();
 
 
         showToast(
             "Worksite Deleted",
-            "Worksite removed successfully.",
+            "Worksite deleted successfully.",
             "success"
         );
+
 
     } catch (error) {
 
@@ -1110,7 +940,7 @@ async function deleteWorksite(id) {
 
         showToast(
             "Delete Failed",
-            "Unable to delete worksite.",
+            error.message,
             "error"
         );
     }
@@ -1126,13 +956,11 @@ async function loadAttendance() {
     try {
 
         const response =
-            await fetch(
-                ATTENDANCE_API
-            );
+            await fetch(ATTENDANCE_API);
 
         if (!response.ok) {
             throw new Error(
-                "Failed to load attendance"
+                "Unable to load attendance."
             );
         }
 
@@ -1141,12 +969,11 @@ async function loadAttendance() {
 
         renderAttendance();
 
+        updateDashboard();
+
     } catch (error) {
 
-        console.error(
-            "Attendance loading error:",
-            error
-        );
+        console.error(error);
 
         attendanceRecords = [];
 
@@ -1154,6 +981,78 @@ async function loadAttendance() {
     }
 }
 
+
+// ------------------------------------------------------------
+// Populate Worker Dropdown
+// ------------------------------------------------------------
+
+function populateAttendanceWorkers() {
+
+    const select =
+        document.getElementById("attendanceWorker");
+
+    if (!select) return;
+
+
+    select.innerHTML = `
+        <option value="">
+            Select worker
+        </option>
+    `;
+
+
+    workers.forEach(worker => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = worker.id;
+
+        option.textContent =
+            `${worker.name} - ₹${worker.dailyWage}/day`;
+
+        select.appendChild(option);
+    });
+}
+
+
+// ------------------------------------------------------------
+// Populate Worksite Dropdown
+// ------------------------------------------------------------
+
+function populateAttendanceWorksites() {
+
+    const select =
+        document.getElementById("attendanceWorksite");
+
+    if (!select) return;
+
+
+    select.innerHTML = `
+        <option value="">
+            Select worksite
+        </option>
+    `;
+
+
+    worksites.forEach(worksite => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = worksite.id;
+
+        option.textContent =
+            `${worksite.name} - ${worksite.location}`;
+
+        select.appendChild(option);
+    });
+}
+
+
+// ------------------------------------------------------------
+// Render Attendance
+// ------------------------------------------------------------
 
 function renderAttendance() {
 
@@ -1169,12 +1068,8 @@ function renderAttendance() {
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="6">
-                    <div class="empty-state">
-                        <div class="empty-icon">📋</div>
-                        <h3>No attendance records</h3>
-                        <p>Mark attendance to see records here.</p>
-                    </div>
+                <td colspan="6" class="empty-table">
+                    No attendance records found.
                 </td>
             </tr>
         `;
@@ -1183,26 +1078,31 @@ function renderAttendance() {
     }
 
 
+    const sorted =
+        [...attendanceRecords].sort(
+            (a, b) =>
+                new Date(b.attendanceDate) -
+                new Date(a.attendanceDate)
+        );
+
+
     tbody.innerHTML =
-        attendanceRecords.map(record => {
+        sorted.map(record => {
 
             const workerName =
-                record.worker?.name || "Unknown";
+                record.worker?.name ||
+                getWorkerName(record.worker?.id);
+
 
             const worksiteName =
-                record.worksite?.name || "Unknown";
-
-            const status =
-                record.status || "";
+                record.worksite?.name ||
+                getWorksiteName(record.worksite?.id);
 
 
-            let statusClass =
-                status.toLowerCase();
-
-
-            if (status === "HALF_DAY") {
-                statusClass = "half-day";
-            }
+            const statusClass =
+                record.status
+                    ?.toLowerCase()
+                    .replace("_", "-");
 
 
             return `
@@ -1210,38 +1110,35 @@ function renderAttendance() {
 
                     <td>
                         <strong>
-                            ${escapeHTML(workerName)}
+                            ${escapeHtml(workerName)}
                         </strong>
                     </td>
 
                     <td>
-                        ${escapeHTML(worksiteName)}
+                        ${escapeHtml(worksiteName)}
                     </td>
 
                     <td>
-                        ${formatDate(
-                record.attendanceDate
-            )}
+                        ${formatDate(record.attendanceDate)}
                     </td>
 
                     <td>
                         <span class="status-badge ${statusClass}">
-                            ${formatStatus(status)}
+                            ${formatStatus(record.status)}
                         </span>
                     </td>
 
                     <td>
-                        ${Number(
-                record.overtimeHours || 0
-            )} hrs
+                        ${record.overtimeHours || 0} hrs
                     </td>
 
                     <td>
 
                         <button
+                            class="danger-button small"
                             type="button"
-                            class="danger-button"
-                            data-delete-attendance="${record.id}">
+                            onclick="deleteAttendance(${record.id})"
+                        >
                             Delete
                         </button>
 
@@ -1254,81 +1151,55 @@ function renderAttendance() {
 }
 
 
-// ============================================================
-// ATTENDANCE MODAL
-// ============================================================
+// ------------------------------------------------------------
+// Open Attendance Modal
+// ------------------------------------------------------------
 
 function openAttendanceModal() {
 
-    const modal =
-        document.getElementById(
-            "attendanceModal"
-        );
-
-    const form =
-        document.getElementById(
-            "attendanceForm"
-        );
-
-    if (!modal || !form) return;
+    document
+        .getElementById("attendanceModal")
+        .classList.add("show");
 
 
-    form.reset();
+    document
+        .getElementById("attendanceForm")
+        .reset();
 
 
-    updateWorkerDropdown();
-    updateWorksiteDropdown();
+    document.getElementById("attendanceDate").value =
+        getTodayDate();
 
 
-    document.getElementById(
-        "attendanceDate"
-    ).value =
-        new Date()
-            .toISOString()
-            .split("T")[0];
+    document.getElementById("attendanceStatus").value =
+        "PRESENT";
 
 
-    document.getElementById(
-        "overtimeHours"
-    ).value = "0";
+    document.getElementById("overtimeHours").value =
+        "0";
 
 
-    modal.classList.add("show");
+    populateAttendanceWorkers();
+
+    populateAttendanceWorksites();
 }
 
 
-function setupAttendanceStatus() {
+// ------------------------------------------------------------
+// Close Attendance Modal
+// ------------------------------------------------------------
 
-    const status =
-        document.getElementById(
-            "attendanceStatus"
-        );
+function closeAttendanceModal() {
 
-    const overtime =
-        document.getElementById(
-            "overtimeHours"
-        );
-
-    if (!status || !overtime) return;
-
-
-    status.addEventListener(
-        "change",
-        () => {
-
-            if (status.value === "ABSENT") {
-
-                overtime.value = "0";
-                overtime.disabled = true;
-
-            } else {
-
-                overtime.disabled = false;
-            }
-        }
-    );
+    document
+        .getElementById("attendanceModal")
+        .classList.remove("show");
 }
 
+
+// ------------------------------------------------------------
+// Save Attendance
+// ------------------------------------------------------------
 
 async function saveAttendance(event) {
 
@@ -1363,23 +1234,18 @@ async function saveAttendance(event) {
         ).value;
 
 
-    const overtimeHours =
+    let overtimeHours =
         Number(
             document.getElementById(
                 "overtimeHours"
-            ).value || 0
+            ).value
         );
 
 
-    if (
-        !workerId ||
-        !worksiteId ||
-        !attendanceDate ||
-        !status
-    ) {
+    if (!workerId || !worksiteId || !attendanceDate) {
 
         showToast(
-            "Incomplete Details",
+            "Invalid Details",
             "Please fill all attendance fields.",
             "error"
         );
@@ -1388,27 +1254,21 @@ async function saveAttendance(event) {
     }
 
 
-    const worker =
-        workers.find(
-            item => item.id === workerId
-        );
-
-
-    const worksite =
-        worksites.find(
-            item => item.id === worksiteId
-        );
-
-
-    if (!worker || !worksite) {
+    if (overtimeHours < 0) {
 
         showToast(
-            "Invalid Selection",
-            "Worker or worksite not found.",
+            "Invalid Overtime",
+            "Overtime hours cannot be negative.",
             "error"
         );
 
         return;
+    }
+
+
+    // Absent workers cannot have overtime
+    if (status === "ABSENT") {
+        overtimeHours = 0;
     }
 
 
@@ -1422,14 +1282,14 @@ async function saveAttendance(event) {
             id: worksiteId
         },
 
-        attendanceDate: attendanceDate,
+        attendanceDate:
+        attendanceDate,
 
-        status: status,
+        status:
+        status,
 
         overtimeHours:
-            status === "ABSENT"
-                ? 0
-                : overtimeHours
+        overtimeHours
     };
 
 
@@ -1442,8 +1302,7 @@ async function saveAttendance(event) {
                     method: "POST",
 
                     headers: {
-                        "Content-Type":
-                            "application/json"
+                        "Content-Type": "application/json"
                     },
 
                     body:
@@ -1453,9 +1312,25 @@ async function saveAttendance(event) {
 
 
         if (!response.ok) {
-            throw new Error(
-                "Attendance save failed"
-            );
+
+            let message =
+                "Unable to save attendance.";
+
+            try {
+
+                const errorData =
+                    await response.json();
+
+                if (errorData.message) {
+                    message =
+                        errorData.message;
+                }
+
+            } catch (error) {
+                console.error(error);
+            }
+
+            throw new Error(message);
         }
 
 
@@ -1463,20 +1338,29 @@ async function saveAttendance(event) {
             await response.json();
 
 
-        // Automatically create payment record
+        // Automatically calculate payment
         try {
 
-            await fetch(
-                `${PAYMENT_API}/calculate?workerId=${workerId}&attendanceId=${saved.id}`,
-                {
-                    method: "POST"
-                }
-            );
+            const paymentResponse =
+                await fetch(
+                    `${PAYMENT_API}/calculate?workerId=${workerId}&attendanceId=${saved.id}`,
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            if (!paymentResponse.ok) {
+
+                console.warn(
+                    "Attendance saved, but payment calculation failed."
+                );
+            }
 
         } catch (paymentError) {
 
             console.error(
-                "Payment calculation failed:",
+                "Payment calculation error:",
                 paymentError
             );
         }
@@ -1484,7 +1368,9 @@ async function saveAttendance(event) {
 
         closeAttendanceModal();
 
+
         await loadAttendance();
+
         await loadPayments();
 
         updateDashboard();
@@ -1492,9 +1378,10 @@ async function saveAttendance(event) {
 
         showToast(
             "Attendance Saved",
-            "Attendance marked successfully.",
+            "Attendance and payment recorded successfully.",
             "success"
         );
+
 
     } catch (error) {
 
@@ -1502,26 +1389,25 @@ async function saveAttendance(event) {
 
         showToast(
             "Save Failed",
-            "Unable to save attendance.",
+            error.message,
             "error"
         );
     }
 }
 
 
-// ============================================================
-// DELETE ATTENDANCE
-// ============================================================
+// ------------------------------------------------------------
+// Delete Attendance
+// ------------------------------------------------------------
 
 async function deleteAttendance(id) {
 
-    if (
-        !confirm(
+    const confirmed =
+        confirm(
             "Are you sure you want to delete this attendance record?"
-        )
-    ) {
-        return;
-    }
+        );
+
+    if (!confirmed) return;
 
 
     try {
@@ -1536,13 +1422,16 @@ async function deleteAttendance(id) {
 
 
         if (!response.ok) {
+
             throw new Error(
-                "Attendance delete failed"
+                "Unable to delete attendance."
             );
         }
 
 
         await loadAttendance();
+
+        await loadPayments();
 
         updateDashboard();
 
@@ -1553,13 +1442,14 @@ async function deleteAttendance(id) {
             "success"
         );
 
+
     } catch (error) {
 
         console.error(error);
 
         showToast(
             "Delete Failed",
-            "Unable to delete attendance.",
+            error.message,
             "error"
         );
     }
@@ -1575,36 +1465,43 @@ async function loadPayments() {
     try {
 
         const response =
-            await fetch(
-                PAYMENT_API
-            );
+            await fetch(PAYMENT_API);
 
         if (!response.ok) {
+
             throw new Error(
-                "Failed to load payments"
+                "Unable to load payments."
             );
         }
 
-        paymentRecords =
+
+        payments =
             await response.json();
 
+
         renderPayments();
+
         updatePaymentSummary();
+
+        updateDashboard();
+
 
     } catch (error) {
 
-        console.error(
-            "Payment loading error:",
-            error
-        );
+        console.error(error);
 
-        paymentRecords = [];
+        payments = [];
 
         renderPayments();
+
         updatePaymentSummary();
     }
 }
 
+
+// ------------------------------------------------------------
+// Render Payments
+// ------------------------------------------------------------
 
 function renderPayments() {
 
@@ -1616,16 +1513,12 @@ function renderPayments() {
     if (!tbody) return;
 
 
-    if (paymentRecords.length === 0) {
+    if (payments.length === 0) {
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="7">
-                    <div class="empty-state">
-                        <div class="empty-icon">₹</div>
-                        <h3>No payment records</h3>
-                        <p>Payment records will appear here.</p>
-                    </div>
+                <td colspan="7" class="empty-table">
+                    No payment records found.
                 </td>
             </tr>
         `;
@@ -1634,11 +1527,25 @@ function renderPayments() {
     }
 
 
+    const sorted =
+        [...payments].sort(
+            (a, b) =>
+                new Date(b.paymentDate) -
+                new Date(a.paymentDate)
+        );
+
+
     tbody.innerHTML =
-        paymentRecords.map(payment => {
+        sorted.map(payment => {
 
             const workerName =
-                payment.worker?.name || "Unknown";
+                payment.worker?.name ||
+                getWorkerName(payment.worker?.id);
+
+
+            const attendanceDate =
+                payment.attendance?.attendanceDate ||
+                "";
 
 
             return `
@@ -1646,44 +1553,34 @@ function renderPayments() {
 
                     <td>
                         <strong>
-                            ${escapeHTML(workerName)}
+                            ${escapeHtml(workerName)}
                         </strong>
                     </td>
 
                     <td>
-                        ${formatDate(
-                payment.attendance?.attendanceDate
-            )}
+                        ${formatDate(attendanceDate)}
                     </td>
 
                     <td>
-                        ₹${formatMoney(
-                payment.basePay
-            )}
+                        ${formatCurrency(payment.basePay)}
                     </td>
 
                     <td>
-                        ${payment.overtimeHours} hrs
+                        ${payment.overtimeHours || 0} hrs
                     </td>
 
                     <td>
-                        ₹${formatMoney(
-                payment.overtimePay
-            )}
+                        ${formatCurrency(payment.overtimePay)}
                     </td>
 
                     <td>
                         <strong>
-                            ₹${formatMoney(
-                payment.totalPay
-            )}
+                            ${formatCurrency(payment.totalPay)}
                         </strong>
                     </td>
 
                     <td>
-                        ${formatDate(
-                payment.paymentDate
-            )}
+                        ${formatDate(payment.paymentDate)}
                     </td>
 
                 </tr>
@@ -1693,22 +1590,24 @@ function renderPayments() {
 }
 
 
+// ------------------------------------------------------------
+// Payment Summary
+// ------------------------------------------------------------
+
 function updatePaymentSummary() {
 
-    const total =
-        paymentRecords.reduce(
+    const totalAmount =
+        payments.reduce(
             (sum, payment) =>
-                sum +
-                Number(payment.totalPay || 0),
+                sum + Number(payment.totalPay || 0),
             0
         );
 
 
-    const overtime =
-        paymentRecords.reduce(
+    const overtimeAmount =
+        payments.reduce(
             (sum, payment) =>
-                sum +
-                Number(payment.overtimePay || 0),
+                sum + Number(payment.overtimePay || 0),
             0
         );
 
@@ -1718,10 +1617,12 @@ function updatePaymentSummary() {
             "paymentTotalAmount"
         );
 
+
     const countElement =
         document.getElementById(
             "paymentRecordCount"
         );
+
 
     const overtimeElement =
         document.getElementById(
@@ -1731,349 +1632,21 @@ function updatePaymentSummary() {
 
     if (totalElement) {
         totalElement.textContent =
-            `₹${formatMoney(total)}`;
+            formatCurrency(totalAmount);
     }
 
 
     if (countElement) {
         countElement.textContent =
-            paymentRecords.length;
+            payments.length;
     }
 
 
     if (overtimeElement) {
         overtimeElement.textContent =
-            `₹${formatMoney(overtime)}`;
+            formatCurrency(overtimeAmount);
     }
 }
-
-
-// ============================================================
-// DROPDOWNS
-// ============================================================
-
-function updateWorkerDropdown() {
-
-    const select =
-        document.getElementById(
-            "attendanceWorker"
-        );
-
-    if (!select) return;
-
-
-    select.innerHTML = `
-        <option value="">
-            Select worker
-        </option>
-    `;
-
-
-    workers.forEach(worker => {
-
-        const option =
-            document.createElement("option");
-
-        option.value =
-            worker.id;
-
-        option.textContent =
-            `${worker.name} — ₹${formatMoney(
-                worker.dailyWage
-            )}/day`;
-
-        select.appendChild(option);
-    });
-}
-
-
-function updateWorksiteDropdown() {
-
-    const select =
-        document.getElementById(
-            "attendanceWorksite"
-        );
-
-    if (!select) return;
-
-
-    select.innerHTML = `
-        <option value="">
-            Select worksite
-        </option>
-    `;
-
-
-    worksites.forEach(worksite => {
-
-        const option =
-            document.createElement("option");
-
-        option.value =
-            worksite.id;
-
-        option.textContent =
-            `${worksite.name} — ${worksite.location}`;
-
-        select.appendChild(option);
-    });
-}
-
-
-// ============================================================
-// FORMS
-// ============================================================
-
-function setupForms() {
-
-    const workerForm =
-        document.getElementById(
-            "workerForm"
-        );
-
-    const worksiteForm =
-        document.getElementById(
-            "worksiteForm"
-        );
-
-    const attendanceForm =
-        document.getElementById(
-            "attendanceForm"
-        );
-
-
-    if (workerForm) {
-
-        workerForm.addEventListener(
-            "submit",
-            saveWorker
-        );
-    }
-
-
-    if (worksiteForm) {
-
-        worksiteForm.addEventListener(
-            "submit",
-            saveWorksite
-        );
-    }
-
-
-    if (attendanceForm) {
-
-        attendanceForm.addEventListener(
-            "submit",
-            saveAttendance
-        );
-    }
-}
-
-
-// ============================================================
-// SEARCH
-// ============================================================
-
-function setupSearch() {
-
-    const input =
-        document.getElementById(
-            "workerSearch"
-        );
-
-    if (!input) return;
-
-
-    input.addEventListener(
-        "input",
-        () => {
-
-            renderWorkers(
-                input.value
-            );
-
-        }
-    );
-}
-
-
-// ============================================================
-// MODALS
-// ============================================================
-
-function setupModalClosing() {
-
-    document.getElementById(
-        "closeWorkerModal"
-    )?.addEventListener(
-        "click",
-        closeWorkerModal
-    );
-
-
-    document.getElementById(
-        "cancelWorkerModal"
-    )?.addEventListener(
-        "click",
-        closeWorkerModal
-    );
-
-
-    document.getElementById(
-        "closeWorksiteModal"
-    )?.addEventListener(
-        "click",
-        closeWorksiteModal
-    );
-
-
-    document.getElementById(
-        "cancelWorksiteModal"
-    )?.addEventListener(
-        "click",
-        closeWorksiteModal
-    );
-
-
-    document.getElementById(
-        "closeAttendanceModal"
-    )?.addEventListener(
-        "click",
-        closeAttendanceModal
-    );
-
-
-    document.getElementById(
-        "cancelAttendanceModal"
-    )?.addEventListener(
-        "click",
-        closeAttendanceModal
-    );
-
-
-    document.querySelectorAll(".modal").forEach(modal => {
-
-        modal.addEventListener(
-            "click",
-            event => {
-
-                if (event.target === modal) {
-
-                    modal.classList.remove(
-                        "show"
-                    );
-                }
-            }
-        );
-    });
-}
-
-
-function closeWorkerModal() {
-
-    document.getElementById(
-        "workerModal"
-    )?.classList.remove("show");
-}
-
-
-function closeWorksiteModal() {
-
-    document.getElementById(
-        "worksiteModal"
-    )?.classList.remove("show");
-}
-
-
-function closeAttendanceModal() {
-
-    document.getElementById(
-        "attendanceModal"
-    )?.classList.remove("show");
-}
-
-
-// ============================================================
-// CARD / TABLE ACTIONS
-// ============================================================
-
-document.addEventListener(
-    "click",
-    event => {
-
-        const editWorker =
-            event.target.closest(
-                "[data-edit-worker]"
-            );
-
-        if (editWorker) {
-
-            openEditWorkerModal(
-                editWorker.dataset.editWorker
-            );
-
-            return;
-        }
-
-
-        const deleteWorkerButton =
-            event.target.closest(
-                "[data-delete-worker]"
-            );
-
-        if (deleteWorkerButton) {
-
-            deleteWorker(
-                deleteWorkerButton.dataset.deleteWorker
-            );
-
-            return;
-        }
-
-
-        const editWorksite =
-            event.target.closest(
-                "[data-edit-worksite]"
-            );
-
-        if (editWorksite) {
-
-            openEditWorksiteModal(
-                editWorksite.dataset.editWorksite
-            );
-
-            return;
-        }
-
-
-        const deleteWorksiteButton =
-            event.target.closest(
-                "[data-delete-worksite]"
-            );
-
-        if (deleteWorksiteButton) {
-
-            deleteWorksite(
-                deleteWorksiteButton.dataset.deleteWorksite
-            );
-
-            return;
-        }
-
-
-        const deleteAttendanceButton =
-            event.target.closest(
-                "[data-delete-attendance]"
-            );
-
-        if (deleteAttendanceButton) {
-
-            deleteAttendance(
-                deleteAttendanceButton.dataset.deleteAttendance
-            );
-        }
-    }
-);
 
 
 // ============================================================
@@ -2082,25 +1655,49 @@ document.addEventListener(
 
 function updateDashboard() {
 
-    setText(
-        "totalWorkers",
-        workers.length
-    );
+    const totalWorkers =
+        document.getElementById(
+            "totalWorkers"
+        );
 
 
-    setText(
-        "totalWorksites",
-        worksites.length
-    );
+    const totalWorksites =
+        document.getElementById(
+            "totalWorksites"
+        );
+
+
+    const presentToday =
+        document.getElementById(
+            "presentToday"
+        );
+
+
+    const totalPayments =
+        document.getElementById(
+            "totalPayments"
+        );
+
+
+    if (totalWorkers) {
+
+        totalWorkers.textContent =
+            workers.length;
+    }
+
+
+    if (totalWorksites) {
+
+        totalWorksites.textContent =
+            worksites.length;
+    }
 
 
     const today =
-        new Date()
-            .toISOString()
-            .split("T")[0];
+        getTodayDate();
 
 
-    const present =
+    const todayAttendance =
         attendanceRecords.filter(
             record =>
                 record.attendanceDate === today &&
@@ -2108,40 +1705,38 @@ function updateDashboard() {
                     record.status === "PRESENT" ||
                     record.status === "HALF_DAY"
                 )
-        ).length;
+        );
 
 
-    setText(
-        "presentToday",
-        present
-    );
+    if (presentToday) {
+
+        presentToday.textContent =
+            todayAttendance.length;
+    }
 
 
-    const totalPayments =
-        paymentRecords.reduce(
+    const paymentTotal =
+        payments.reduce(
             (sum, payment) =>
-                sum +
-                Number(payment.totalPay || 0),
+                sum + Number(payment.totalPay || 0),
             0
         );
 
 
-    const paymentElement =
-        document.getElementById(
-            "totalPayments"
-        );
+    if (totalPayments) {
 
-
-    if (paymentElement) {
-
-        paymentElement.textContent =
-            `₹${formatMoney(totalPayments)}`;
+        totalPayments.textContent =
+            formatCurrency(paymentTotal);
     }
 
 
     renderDashboardWorkers();
 }
 
+
+// ------------------------------------------------------------
+// Dashboard Recent Workers
+// ------------------------------------------------------------
 
 function renderDashboardWorkers() {
 
@@ -2153,17 +1748,22 @@ function renderDashboardWorkers() {
     if (!container) return;
 
 
-    const latest =
+    const recentWorkers =
         [...workers]
-            .reverse()
+            .sort(
+                (a, b) =>
+                    Number(b.id) -
+                    Number(a.id)
+            )
             .slice(0, 5);
 
 
-    if (latest.length === 0) {
+    if (recentWorkers.length === 0) {
 
         container.innerHTML = `
             <div class="empty-state">
-                <p>No workers registered yet.</p>
+                <h3>No workers yet</h3>
+                <p>Add your first worker.</p>
             </div>
         `;
 
@@ -2172,10 +1772,10 @@ function renderDashboardWorkers() {
 
 
     container.innerHTML =
-        latest.map(worker => {
+        recentWorkers.map(worker => {
 
             return `
-                <div class="dashboard-worker">
+                <div class="dashboard-worker-item">
 
                     <div class="worker-avatar">
                         ${getInitials(worker.name)}
@@ -2184,47 +1784,23 @@ function renderDashboardWorkers() {
                     <div>
 
                         <strong>
-                            ${escapeHTML(worker.name)}
+                            ${escapeHtml(worker.name)}
                         </strong>
 
                         <span>
-                            ₹${formatMoney(
-                worker.dailyWage
-            )}/day
+                            ${escapeHtml(worker.phone)}
                         </span>
 
                     </div>
+
+                    <strong>
+                        ${formatCurrency(worker.dailyWage)}
+                    </strong>
 
                 </div>
             `;
 
         }).join("");
-}
-
-
-// ============================================================
-// DATE
-// ============================================================
-
-function setCurrentDate() {
-
-    const element =
-        document.getElementById(
-            "currentDate"
-        );
-
-    if (!element) return;
-
-
-    element.textContent =
-        new Date().toLocaleDateString(
-            "en-IN",
-            {
-                day: "2-digit",
-                month: "short",
-                year: "numeric"
-            }
-        );
 }
 
 
@@ -2239,108 +1815,108 @@ function showToast(
 ) {
 
     const toast =
-        document.getElementById(
-            "toast"
-        );
+        document.getElementById("toast");
 
-    const titleElement =
-        document.getElementById(
-            "toastTitle"
-        );
 
-    const messageElement =
-        document.getElementById(
-            "toastMessage"
-        );
+    const toastTitle =
+        document.getElementById("toastTitle");
+
+
+    const toastMessage =
+        document.getElementById("toastMessage");
 
 
     if (!toast) return;
 
 
-    if (titleElement) {
-        titleElement.textContent =
-            title;
-    }
+    toastTitle.textContent =
+        title;
 
 
-    if (messageElement) {
-        messageElement.textContent =
-            message;
-    }
+    toastMessage.textContent =
+        message;
 
 
     toast.classList.remove(
         "success",
-        "error",
-        "show"
+        "error"
     );
 
 
     toast.classList.add(type);
+
+
     toast.classList.add("show");
 
 
-    setTimeout(() => {
+    clearTimeout(
+        window.toastTimer
+    );
 
-        toast.classList.remove("show");
 
-    }, 3500);
+    window.toastTimer =
+        setTimeout(() => {
+
+            toast.classList.remove("show");
+
+        }, 4000);
 }
 
 
-document.getElementById(
-    "closeToast"
-)?.addEventListener(
-    "click",
-    () => {
+// ------------------------------------------------------------
+// Close Toast
+// ------------------------------------------------------------
 
-        document.getElementById(
-            "toast"
-        )?.classList.remove("show");
+function closeToast() {
 
-    }
-);
+    document
+        .getElementById("toast")
+        ?.classList.remove("show");
+}
 
 
 // ============================================================
-// UTILITY FUNCTIONS
+// DATE / FORMATTING FUNCTIONS
 // ============================================================
 
-function setText(id, value) {
+function getTodayDate() {
 
-    const element =
-        document.getElementById(id);
+    const date =
+        new Date();
 
-    if (element) {
-        element.textContent = value;
+    const year =
+        date.getFullYear();
+
+    const month =
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(2, "0");
+
+
+    return `${year}-${month}-${day}`;
+}
+
+
+function formatDate(dateString) {
+
+    if (!dateString) {
+        return "-";
     }
-}
-
-
-function formatMoney(value) {
-
-    return Number(value || 0)
-        .toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
-        );
-}
-
-
-function formatDate(value) {
-
-    if (!value) return "-";
 
 
     const date =
-        new Date(value);
+        new Date(
+            dateString + "T00:00:00"
+        );
 
 
     if (isNaN(date.getTime())) {
-        return value;
+        return dateString;
     }
 
 
@@ -2355,25 +1931,74 @@ function formatDate(value) {
 }
 
 
+function formatCurrency(value) {
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            style: "currency",
+            currency: "INR",
+            minimumFractionDigits: 2
+        }
+    ).format(
+        Number(value || 0)
+    );
+}
+
+
 function formatStatus(status) {
 
-    if (!status) return "-";
+    if (!status) {
+        return "-";
+    }
 
 
     return status
         .replaceAll("_", " ")
         .toLowerCase()
-        .replace(
-            /\b\w/g,
-            letter =>
-                letter.toUpperCase()
+        .replace(/\b\w/g, letter =>
+            letter.toUpperCase()
         );
+}
+
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+
+function getWorkerName(id) {
+
+    const worker =
+        workers.find(
+            item => Number(item.id) === Number(id)
+        );
+
+
+    return worker
+        ? worker.name
+        : `Worker #${id || "-"}`;
+}
+
+
+function getWorksiteName(id) {
+
+    const worksite =
+        worksites.find(
+            item => Number(item.id) === Number(id)
+        );
+
+
+    return worksite
+        ? worksite.name
+        : `Worksite #${id || "-"}`;
 }
 
 
 function getInitials(name) {
 
-    if (!name) return "?";
+    if (!name) {
+        return "WT";
+    }
 
 
     const words =
@@ -2395,12 +2020,9 @@ function getInitials(name) {
 }
 
 
-function escapeHTML(value) {
+function escapeHtml(value) {
 
-    if (
-        value === null ||
-        value === undefined
-    ) {
+    if (value === null || value === undefined) {
         return "";
     }
 
@@ -2412,4 +2034,390 @@ function escapeHTML(value) {
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
 }
+
+
+// ============================================================
+// CURRENT DATE
+// ============================================================
+
+function updateCurrentDate() {
+
+    const element =
+        document.getElementById(
+            "currentDate"
+        );
+
+
+    if (!element) return;
+
+
+    const today =
+        new Date();
+
+
+    element.textContent =
+        today.toLocaleDateString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            }
+        );
+}
+
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+
+        // ----------------------------------------------------
+        // Navigation
+        // ----------------------------------------------------
+
+        document
+            .querySelectorAll(".nav-item")
+            .forEach(item => {
+
+                item.addEventListener(
+                    "click",
+                    () => {
+
+                        showPage(
+                            item.dataset.page
+                        );
+                    }
+                );
+
+            });
+
+
+        // ----------------------------------------------------
+        // Other buttons with data-page
+        // ----------------------------------------------------
+
+        document
+            .querySelectorAll("[data-page]")
+            .forEach(button => {
+
+                if (
+                    button.classList.contains(
+                        "nav-item"
+                    )
+                ) {
+                    return;
+                }
+
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        showPage(
+                            button.dataset.page
+                        );
+                    }
+                );
+
+            });
+
+
+        // ----------------------------------------------------
+        // Dashboard Add Worker
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "dashboardAddWorkerBtn"
+            )
+            ?.addEventListener(
+                "click",
+                openWorkerModal
+            );
+
+
+        // ----------------------------------------------------
+        // Add Worker
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "addWorkerBtn"
+            )
+            ?.addEventListener(
+                "click",
+                openWorkerModal
+            );
+
+
+        // ----------------------------------------------------
+        // Add Worksite
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "addWorksiteBtn"
+            )
+            ?.addEventListener(
+                "click",
+                openWorksiteModal
+            );
+
+
+        // ----------------------------------------------------
+        // Add Attendance
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "addAttendanceBtn"
+            )
+            ?.addEventListener(
+                "click",
+                openAttendanceModal
+            );
+
+
+        // ----------------------------------------------------
+        // Worker Form
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "workerForm"
+            )
+            ?.addEventListener(
+                "submit",
+                saveWorker
+            );
+
+
+        // ----------------------------------------------------
+        // Worksite Form
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "worksiteForm"
+            )
+            ?.addEventListener(
+                "submit",
+                saveWorksite
+            );
+
+
+        // ----------------------------------------------------
+        // Attendance Form
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "attendanceForm"
+            )
+            ?.addEventListener(
+                "submit",
+                saveAttendance
+            );
+
+
+        // ----------------------------------------------------
+        // Worker Modal Close
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "closeWorkerModal"
+            )
+            ?.addEventListener(
+                "click",
+                closeWorkerModal
+            );
+
+
+        document
+            .getElementById(
+                "cancelWorkerModal"
+            )
+            ?.addEventListener(
+                "click",
+                closeWorkerModal
+            );
+
+
+        // ----------------------------------------------------
+        // Worksite Modal Close
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "closeWorksiteModal"
+            )
+            ?.addEventListener(
+                "click",
+                closeWorksiteModal
+            );
+
+
+        document
+            .getElementById(
+                "cancelWorksiteModal"
+            )
+            ?.addEventListener(
+                "click",
+                closeWorksiteModal
+            );
+
+
+        // ----------------------------------------------------
+        // Attendance Modal Close
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "closeAttendanceModal"
+            )
+            ?.addEventListener(
+                "click",
+                closeAttendanceModal
+            );
+
+
+        document
+            .getElementById(
+                "cancelAttendanceModal"
+            )
+            ?.addEventListener(
+                "click",
+                closeAttendanceModal
+            );
+
+
+        // ----------------------------------------------------
+        // Toast Close
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "closeToast"
+            )
+            ?.addEventListener(
+                "click",
+                closeToast
+            );
+
+
+        // ----------------------------------------------------
+        // Worker Search
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "workerSearch"
+            )
+            ?.addEventListener(
+                "input",
+                renderWorkers
+            );
+
+
+        // ----------------------------------------------------
+        // Mobile Menu
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "menuButton"
+            )
+            ?.addEventListener(
+                "click",
+                () => {
+
+                    document
+                        .getElementById("sidebar")
+                        ?.classList.toggle(
+                        "mobile-open"
+                    );
+                }
+            );
+
+
+        // ----------------------------------------------------
+        // Attendance Status
+        // ----------------------------------------------------
+
+        document
+            .getElementById(
+                "attendanceStatus"
+            )
+            ?.addEventListener(
+                "change",
+                event => {
+
+                    const overtimeInput =
+                        document.getElementById(
+                            "overtimeHours"
+                        );
+
+
+                    if (
+                        event.target.value ===
+                        "ABSENT"
+                    ) {
+
+                        overtimeInput.value =
+                            "0";
+
+                        overtimeInput.disabled =
+                            true;
+
+                    } else {
+
+                        overtimeInput.disabled =
+                            false;
+                    }
+                }
+            );
+
+
+        // ----------------------------------------------------
+        // Close modal when clicking outside
+        // ----------------------------------------------------
+
+        document
+            .querySelectorAll(".modal")
+            .forEach(modal => {
+
+                modal.addEventListener(
+                    "click",
+                    event => {
+
+                        if (
+                            event.target === modal
+                        ) {
+
+                            modal.classList.remove(
+                                "show"
+                            );
+                        }
+                    }
+                );
+
+            });
+
+
+        // ----------------------------------------------------
+        // Initialize
+        // ----------------------------------------------------
+
+        updateCurrentDate();
+
+        loadAllData();
+
+    }
+);
 
