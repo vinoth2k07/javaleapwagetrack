@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>WageTrack | Workforce Management System</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- =========================================================
+     APPLICATION
+========================================================= -->
+
+<div class="app">
+
+
+  <!-- =====================================================
+       SIDEBAR
+  ====================================================== -->
+
+  <aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+
+      <div class="brand-logo">
+        WT
+      </div>
+
+      <div class="brand-text">
+        <h1>WageTrack</h1>
+        <span>Workforce Management</span>
+      </div>
+
+    </div>
+
+
+    <!-- Navigation -->
+
+    <nav class="sidebar-nav">
+
+      <p class="nav-section-title">
+        MAIN MENU
+      </p>
+
+      <button
+              class="nav-item active"
+              data-page="dashboard"
+              type="button"
+      >
+        <span class="nav-icon">▦</span>
+        <span>Dashboard</span>
+      </button>
+
+
+      <button
+              class="nav-item"
+              data-page="workers"
+              type="button"
+      >
+        <span class="nav-icon">♙</span>
+        <span>Workers</span>
+      </button>
+
+
+      <button
+              class="nav-item"
+              data-page="worksites"
+              type="button"
+      >
+        <span class="nav-icon">⌂</span>
+        <span>Worksites</span>
+      </button>
+
+
+      <button
+              class="nav-item"
+              data-page="attendance"
+              type="button"
+      >
+        <span class="nav-icon">✓</span>
+        <span>Attendance</span>
+      </button>
+
+
+      <button
+              class="nav-item"
+              data-page="payments"
+              type="button"
+      >
+        <span class="nav-icon">₹</span>
+        <span>Payments</span>
+      </button>
+
+
+      <p class="nav-section-title nav-section-space">
+        ANALYTICS
+      </p>
+
+
+      <button
+              class="nav-item"
+              data-page="reports"
+              type="button"
+      >
+        <span class="nav-icon">▤</span>
+        <span>Reports</span>
+      </button>
+
+    </nav>
+
+
+    <!-- Sidebar bottom -->
+
+    <div class="sidebar-footer">
+
+      <div class="system-status">
+
+        <span class="status-dot"></span>
+
+        <div>
+          <strong>System Online</strong>
+          <small>All services operational</small>
+        </div>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- =====================================================
+       MAIN AREA
+  ====================================================== -->
+
+  <main class="main-content">
+
+
+    <!-- =================================================
+         TOP BAR
+    ================================================== -->
+
+    <header class="topbar">
+
+      <div class="topbar-left">
+
+        <button
+                id="menuButton"
+                class="menu-button"
+                type="button"
+                aria-label="Open menu"
+        >
+          ☰
+        </button>
+
+
+        <div class="page-heading">
+
+          <h2 id="pageTitle">
+            Dashboard
+          </h2>
+
+          <p id="pageSubtitle">
+            Workforce overview and daily operations
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="topbar-right">
+
+        <div class="current-date">
+
+          <span class="date-icon">◷</span>
+
+          <span id="currentDate">
+                        28 Sep 2026
+                    </span>
+
+        </div>
+
+
+        <div class="profile">
+
+          <div class="profile-avatar">
+            WT
+          </div>
+
+          <div class="profile-info">
+            <strong>Administrator</strong>
+            <span>System Manager</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- =================================================
+         PAGE CONTAINER
+    ================================================== -->
+
+    <div class="page-container">
+
+
+      <!-- =================================================
+           DASHBOARD
+      ================================================== -->
+
+      <section
+              class="page active"
+              id="dashboard"
+      >
+
+        <div class="welcome-section">
+
+          <div>
+
+            <p class="eyebrow">
+              WORKFORCE OVERVIEW
+            </p>
+
+            <h1>
+              Welcome to WageTrack
+            </h1>
+
+            <p>
+              Manage workers, worksites, attendance
+              and daily wage payments from one place.
+            </p>
+
+          </div>
+
+
+          <button
+                  id="dashboardAddWorkerBtn"
+                  class="primary-button"
+                  type="button"
+          >
+            <span>+</span>
+            Add Worker
+          </button>
+
+        </div>
+
+
+
+        <!-- Statistics -->
+
+        <div class="stats-grid">
+
+
+          <div class="stat-card">
+
+            <div class="stat-card-top">
+
+              <div class="stat-icon workers-icon">
+                ♙
+              </div>
+
+              <span class="stat-label">
+                                WORKFORCE
+                            </span>
+
+            </div>
+
+            <div class="stat-value" id="totalWorkers">
+              0
+            </div>
+
+            <div class="stat-description">
+              Registered workers
+            </div>
+
+          </div>
+
+
+
+          <div class="stat-card">
+
+            <div class="stat-card-top">
+
+              <div class="stat-icon sites-icon">
+                ⌂
+              </div>
+
+              <span class="stat-label">
+                                WORKSITES
+                            </span>
+
+            </div>
+
+            <div class="stat-value" id="totalWorksites">
+              0
+            </div>
+
+            <div class="stat-description">
+              Active work locations
+            </div>
+
+          </div>
+
+
+
+          <div class="stat-card">
+
+            <div class="stat-card-top">
+
+              <div class="stat-icon attendance-icon">
+                ✓
+              </div>
+
+              <span class="stat-label">
+                                ATTENDANCE
+                            </span>
+
+            </div>
+
+            <div class="stat-value" id="presentToday">
+              0
+            </div>
+
+            <div class="stat-description">
+              Workers present today
+            </div>
+
+          </div>
+
+
+
+          <div class="stat-card">
+
+            <div class="stat-card-top">
+
+              <div class="stat-icon payment-icon">
+                ₹
+              </div>
+
+              <span class="stat-label">
+                                PAYMENTS
+                            </span>
+
+            </div>
+
+            <div class="stat-value" id="totalPayments">
+              ₹0.00
+            </div>
+
+            <div class="stat-description">
+              Total recorded payments
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Dashboard lower area -->
+
+        <div class="dashboard-grid">
+
+
+          <!-- Recent Workers -->
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                                <span class="panel-kicker">
+                                    WORKFORCE
+                                </span>
+
+                <h2>
+                  Recent Workers
+                </h2>
+
+              </div>
+
+              <button
+                      class="text-button"
+                      data-page="workers"
+                      type="button"
+              >
+                View All →
+              </button>
+
+            </div>
+
+
+            <div
+                    id="dashboardWorkerList"
+                    class="dashboard-worker-list"
+            >
+            </div>
+
+          </div>
+
+
+
+          <!-- Quick Actions -->
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                                <span class="panel-kicker">
+                                    SHORTCUTS
+                                </span>
+
+                <h2>
+                  Quick Actions
+                </h2>
+
+              </div>
+
+            </div>
+
+
+            <div class="quick-actions">
+
+
+              <button
+                      class="quick-action"
+                      data-action="worker"
+                      type="button"
+              >
+
+                <div class="quick-action-icon">
+                  ♙
+                </div>
+
+                <div>
+                  <strong>Add Worker</strong>
+                  <span>Register a new worker</span>
+                </div>
+
+                <span class="quick-arrow">→</span>
+
+              </button>
+
+
+
+              <button
+                      class="quick-action"
+                      data-action="worksite"
+                      type="button"
+              >
+
+                <div class="quick-action-icon">
+                  ⌂
+                </div>
+
+                <div>
+                  <strong>Add Worksite</strong>
+                  <span>Create a work location</span>
+                </div>
+
+                <span class="quick-arrow">→</span>
+
+              </button>
+
+
+
+              <button
+                      class="quick-action"
+                      data-action="attendance"
+                      type="button"
+              >
+
+                <div class="quick-action-icon">
+                  ✓
+                </div>
+
+                <div>
+                  <strong>Mark Attendance</strong>
+                  <span>Record today's attendance</span>
+                </div>
+
+                <span class="quick-arrow">→</span>
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           WORKERS
+      ================================================== -->
+
+      <section
+              class="page"
+              id="workers"
+      >
+
+        <div class="section-header">
+
+          <div>
+
+                        <span class="eyebrow">
+                            WORKFORCE MANAGEMENT
+                        </span>
+
+            <h1>
+              Workers
+            </h1>
+
+            <p>
+              Register and manage daily wage workers.
+            </p>
+
+          </div>
+
+
+          <button
+                  id="addWorkerBtn"
+                  class="primary-button"
+                  type="button"
+          >
+            <span>+</span>
+            Add Worker
+          </button>
+
+        </div>
+
+
+        <div class="panel worker-panel">
+
+          <div class="toolbar">
+
+            <div class="search-box">
+
+              <span>⌕</span>
+
+              <input
+                      type="text"
+                      id="workerSearch"
+                      placeholder="Search workers by name or phone..."
+              >
+
+            </div>
+
+
+            <div class="record-count">
+
+              <strong id="workerCount">
+                0
+              </strong>
+
+              <span>workers</span>
+
+            </div>
+
+          </div>
+
+
+          <div
+                  id="workerList"
+                  class="worker-grid"
+          >
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           WORKSITES
+      ================================================== -->
+
+      <section
+              class="page"
+              id="worksites"
+      >
+
+        <div class="section-header">
+
+          <div>
+
+                        <span class="eyebrow">
+                            LOCATION MANAGEMENT
+                        </span>
+
+            <h1>
+              Worksites
+            </h1>
+
+            <p>
+              Manage construction and work locations.
+            </p>
+
+          </div>
+
+
+          <button
+                  id="addWorksiteBtn"
+                  class="primary-button"
+                  type="button"
+          >
+            <span>+</span>
+            Add Worksite
+          </button>
+
+        </div>
+
+
+        <div
+                id="worksiteList"
+                class="worksite-grid"
+        >
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           ATTENDANCE
+      ================================================== -->
+
+      <section
+              class="page"
+              id="attendance"
+      >
+
+        <div class="section-header">
+
+          <div>
+
+                        <span class="eyebrow">
+                            DAILY OPERATIONS
+                        </span>
+
+            <h1>
+              Attendance
+            </h1>
+
+            <p>
+              Track daily worker attendance and overtime.
+            </p>
+
+          </div>
+
+
+          <button
+                  id="addAttendanceBtn"
+                  class="primary-button"
+                  type="button"
+          >
+            <span>+</span>
+            Mark Attendance
+          </button>
+
+        </div>
+
+
+        <div class="panel table-panel">
+
+          <div class="table-header">
+
+            <div>
+
+                            <span class="panel-kicker">
+                                ATTENDANCE RECORDS
+                            </span>
+
+              <h2>
+                Daily Attendance
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+              <tr>
+
+                <th>WORKER</th>
+                <th>WORKSITE</th>
+                <th>DATE</th>
+                <th>STATUS</th>
+                <th>OVERTIME</th>
+                <th>ACTION</th>
+
+              </tr>
+
+              </thead>
+
+
+              <tbody id="attendanceTableBody">
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           PAYMENTS
+      ================================================== -->
+
+      <section
+              class="page"
+              id="payments"
+      >
+
+        <div class="section-header">
+
+          <div>
+
+                        <span class="eyebrow">
+                            FINANCIAL MANAGEMENT
+                        </span>
+
+            <h1>
+              Payments
+            </h1>
+
+            <p>
+              Monitor daily wage and overtime payments.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- Payment summary -->
+
+        <div class="payment-summary-grid">
+
+
+          <div class="summary-card">
+
+                        <span>
+                            TOTAL PAYMENTS
+                        </span>
+
+            <strong id="paymentTotalAmount">
+              ₹0.00
+            </strong>
+
+          </div>
+
+
+          <div class="summary-card">
+
+                        <span>
+                            PAYMENT RECORDS
+                        </span>
+
+            <strong id="paymentRecordCount">
+              0
+            </strong>
+
+          </div>
+
+
+          <div class="summary-card">
+
+                        <span>
+                            OVERTIME PAYMENTS
+                        </span>
+
+            <strong id="overtimePaymentAmount">
+              ₹0.00
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel table-panel">
+
+          <div class="table-header">
+
+            <div>
+
+                            <span class="panel-kicker">
+                                PAYMENT HISTORY
+                            </span>
+
+              <h2>
+                Recent Payments
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+              <tr>
+
+                <th>WORKER</th>
+                <th>DATE</th>
+                <th>BASE PAY</th>
+                <th>OVERTIME</th>
+                <th>OT PAY</th>
+                <th>TOTAL</th>
+                <th>PAYMENT DATE</th>
+
+              </tr>
+
+              </thead>
+
+
+              <tbody id="paymentTableBody">
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           REPORTS
+      ================================================== -->
+
+      <section
+              class="page"
+              id="reports"
+      >
+
+        <div class="section-header">
+
+          <div>
+
+                        <span class="eyebrow">
+                            ANALYTICS
+                        </span>
+
+            <h1>
+              Reports
+            </h1>
+
+            <p>
+              Review workforce attendance and payment
+              information.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="reports-grid">
+
+
+          <div class="report-card">
+
+            <div class="report-icon">
+              ✓
+            </div>
+
+            <div>
+
+                            <span>
+                                ATTENDANCE
+                            </span>
+
+              <h2>
+                Attendance Summary
+              </h2>
+
+              <p>
+                Review worker attendance records,
+                present days and overtime.
+              </p>
+
+            </div>
+
+            <button
+                    class="secondary-button"
+                    type="button"
+                    data-page="attendance"
+            >
+              View Attendance
+            </button>
+
+          </div>
+
+
+
+          <div class="report-card">
+
+            <div class="report-icon">
+              ₹
+            </div>
+
+            <div>
+
+                            <span>
+                                PAYMENTS
+                            </span>
+
+              <h2>
+                Payment Summary
+              </h2>
+
+              <p>
+                Review wage payments and overtime
+                calculations.
+              </p>
+
+            </div>
+
+            <button
+                    class="secondary-button"
+                    type="button"
+                    data-page="payments"
+            >
+              View Payments
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+</div>
+
+
+
+<!-- =========================================================
+     WORKER MODAL
+========================================================= -->
+
+<div
+        class="modal"
+        id="workerModal"
+>
+
+  <div class="modal-box">
+
+
+    <div class="modal-header">
+
+      <div>
+
+                <span class="modal-kicker">
+                    WORKFORCE
+                </span>
+
+        <h2 id="workerModalTitle">
+          Add Worker
+        </h2>
+
+        <p>
+          Enter the worker's details below.
+        </p>
+
+      </div>
+
+
+      <button
+              id="closeWorkerModal"
+              class="modal-close"
+              type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form id="workerForm">
+
+      <input
+              type="hidden"
+              id="workerId"
+      >
+
+
+      <div class="form-grid">
+
+
+        <div class="form-group full-width">
+
+          <label for="workerName">
+            Worker Name
+          </label>
+
+          <input
+                  type="text"
+                  id="workerName"
+                  placeholder="Enter worker name"
+                  required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="workerPhone">
+            Phone Number
+          </label>
+
+          <input
+                  type="tel"
+                  id="workerPhone"
+                  placeholder="Enter phone number"
+                  required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="workerWage">
+            Daily Wage
+          </label>
+
+          <div class="input-prefix">
+
+            <span>₹</span>
+
+            <input
+                    type="number"
+                    id="workerWage"
+                    placeholder="0.00"
+                    min="1"
+                    step="0.01"
+                    required
+            >
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+                id="cancelWorkerModal"
+                class="secondary-button"
+                type="button"
+        >
+          Cancel
+        </button>
+
+        <button
+                class="primary-button"
+                type="submit"
+        >
+          Save Worker
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     WORKSITE MODAL
+========================================================= -->
+
+<div
+        class="modal"
+        id="worksiteModal"
+>
+
+  <div class="modal-box">
+
+
+    <div class="modal-header">
+
+      <div>
+
+                <span class="modal-kicker">
+                    LOCATION MANAGEMENT
+                </span>
+
+        <h2 id="worksiteModalTitle">
+          Add Worksite
+        </h2>
+
+        <p>
+          Enter the worksite information.
+        </p>
+
+      </div>
+
+
+      <button
+              id="closeWorksiteModal"
+              class="modal-close"
+              type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form id="worksiteForm">
+
+      <input
+              type="hidden"
+              id="worksiteId"
+      >
+
+
+      <div class="form-group">
+
+        <label for="worksiteName">
+          Worksite Name
+        </label>
+
+        <input
+                type="text"
+                id="worksiteName"
+                placeholder="Example: Chennai Construction Site"
+                required
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="worksiteLocation">
+          Location
+        </label>
+
+        <input
+                type="text"
+                id="worksiteLocation"
+                placeholder="Enter worksite location"
+                required
+        >
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+                id="cancelWorksiteModal"
+                class="secondary-button"
+                type="button"
+        >
+          Cancel
+        </button>
+
+        <button
+                class="primary-button"
+                type="submit"
+        >
+          Save Worksite
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     ATTENDANCE MODAL
+========================================================= -->
+
+<div
+        class="modal"
+        id="attendanceModal"
+>
+
+  <div class="modal-box">
+
+
+    <div class="modal-header">
+
+      <div>
+
+                <span class="modal-kicker">
+                    DAILY OPERATIONS
+                </span>
+
+        <h2>
+          Mark Attendance
+        </h2>
+
+        <p>
+          Record worker attendance and overtime.
+        </p>
+
+      </div>
+
+
+      <button
+              id="closeAttendanceModal"
+              class="modal-close"
+              type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form id="attendanceForm">
+
+
+      <div class="form-grid">
+
+
+        <div class="form-group">
+
+          <label for="attendanceWorker">
+            Worker
+          </label>
+
+          <select
+                  id="attendanceWorker"
+                  required
+          >
+
+            <option value="">
+              Select worker
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="attendanceWorksite">
+            Worksite
+          </label>
+
+          <select
+                  id="attendanceWorksite"
+                  required
+          >
+
+            <option value="">
+              Select worksite
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="attendanceDate">
+            Attendance Date
+          </label>
+
+          <input
+                  type="date"
+                  id="attendanceDate"
+                  required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="attendanceStatus">
+            Attendance Status
+          </label>
+
+          <select
+                  id="attendanceStatus"
+                  required
+          >
+
+            <option value="PRESENT">
+              Present
+            </option>
+
+            <option value="HALF_DAY">
+              Half Day
+            </option>
+
+            <option value="ABSENT">
+              Absent
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="form-group full-width">
+
+          <label for="overtimeHours">
+            Overtime Hours
+          </label>
+
+          <input
+                  type="number"
+                  id="overtimeHours"
+                  min="0"
+                  step="0.5"
+                  value="0"
+                  placeholder="0"
+          >
+
+          <small class="form-help">
+            Enter overtime hours worked beyond the
+            regular working day.
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+                id="cancelAttendanceModal"
+                class="secondary-button"
+                type="button"
+        >
+          Cancel
+        </button>
+
+        <button
+                class="primary-button"
+                type="submit"
+        >
+          Save Attendance
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     TOAST NOTIFICATION
+========================================================= -->
+
+<div
+        class="toast"
+        id="toast"
+>
+
+  <div class="toast-icon">
+    ✓
+  </div>
+
+  <div class="toast-content">
+
+    <strong id="toastTitle">
+      Success
+    </strong>
+
+    <span id="toastMessage">
+            Operation completed successfully.
+        </span>
+
+  </div>
+
+
+  <button
+          id="closeToast"
+          class="toast-close"
+          type="button"
+  >
+    ×
+  </button>
+
+</div>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script src="script.js"></script>
+
+</body>
+</html>
